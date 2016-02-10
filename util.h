@@ -40,6 +40,6 @@ template <class T>
 std::vector<std::pair<T, double> > GetCDF(const std::vector<T> &data);
 
 // Returns the cost of embedding virt_topology on phys_topology.
-long EmbeddingCost(const Graph* phys_topology, const Graph* virt_topology,
-                   const VNEmbedding* embedding);
+long EmbeddingCost(const Graph *phys_topology, const Graph *virt_topology,
+                   const VNEmbedding *embedding);
 #endif  // UTIL_H_

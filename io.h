@@ -11,9 +11,9 @@
 #include <string>
 #include <string.h>
 
-std::unique_ptr<std::map<std::string, std::string> > ParseArgs(int argc,
-                                                               char *argv[]) {
-  std::unique_ptr<std::map<std::string, std::string> > arg_map(
+std::unique_ptr<std::map<std::string, std::string>> ParseArgs(int argc,
+                                                              char *argv[]) {
+  std::unique_ptr<std::map<std::string, std::string>> arg_map(
       new std::map<std::string, std::string>());
   for (int i = 1; i < argc; ++i) {
     char *key = strtok(argv[i], "=");
@@ -24,7 +24,7 @@ std::unique_ptr<std::map<std::string, std::string> > ParseArgs(int argc,
   return std::move(arg_map);
 }
 
-std::unique_ptr<std::vector<std::vector<std::string> > > ReadCSVFile(
+std::unique_ptr<std::vector<std::vector<std::string>>> ReadCSVFile(
     const char *filename) {
   DEBUG("[Parsing %s]\n", filename);
   FILE *file_ptr = fopen(filename, "r");
@@ -34,8 +34,8 @@ std::unique_ptr<std::vector<std::vector<std::string> > > ReadCSVFile(
   }
   const static int kBufferSize = 1024;
   char line_buffer[kBufferSize];
-  std::unique_ptr<std::vector<std::vector<std::string> > > ret_vector(
-      new std::vector<std::vector<std::string> >());
+  std::unique_ptr<std::vector<std::vector<std::string>>> ret_vector(
+      new std::vector<std::vector<std::string>>());
   std::vector<std::string> current_line;
   int row_number = 0;
   while (fgets(line_buffer, kBufferSize, file_ptr)) {
@@ -77,11 +77,11 @@ std::unique_ptr<Graph> InitializeTopologyFromFile(const char *filename) {
   return std::move(graph);
 }
 
-std::unique_ptr<std::vector<std::vector<int> > > InitializeVNLocationsFromFile(
+std::unique_ptr<std::vector<std::vector<int>>> InitializeVNLocationsFromFile(
     const char *filename, int num_virtual_nodes) {
   DEBUG("Parsing %s\n", filename);
-  auto ret_vector = std::unique_ptr<std::vector<std::vector<int> > >(
-      new std::vector<std::vector<int> >(num_virtual_nodes));
+  auto ret_vector = std::unique_ptr<std::vector<std::vector<int>>>(
+      new std::vector<std::vector<int>>(num_virtual_nodes));
   auto csv_vector = ReadCSVFile(filename);
   for (int i = 0; i < csv_vector->size(); ++i) {
     auto &row = csv_vector->at(i);
@@ -95,14 +95,14 @@ std::unique_ptr<std::vector<std::vector<int> > > InitializeVNLocationsFromFile(
 
 std::unique_ptr<VNEmbedding> InitializeVNEmbeddingFromFile(
     const char *nmap_file, const char *emap_file) {
-  auto vn_embedding = std::unique_ptr<VNEmbedding>(
-      new VNEmbedding());
-  vn_embedding->node_map = std::unique_ptr<std::vector<int>>(
-      new std::vector<int>());
-  vn_embedding->edge_map = std::unique_ptr<std::map<std::pair<int,int>, std::vector<std::pair<int,int>>>>(
-      new std::map<std::pair<int,int>, std::vector<std::pair<int,int>>>());
-  FILE* nmap = fopen(nmap_file, "r");
-  FILE* emap = fopen(emap_file, "r");
+  auto vn_embedding = std::unique_ptr<VNEmbedding>(new VNEmbedding());
+  vn_embedding->node_map =
+      std::unique_ptr<std::vector<int>>(new std::vector<int>());
+  vn_embedding->edge_map = std::unique_ptr<
+      std::map<std::pair<int, int>, std::vector<std::pair<int, int>>>>(
+      new std::map<std::pair<int, int>, std::vector<std::pair<int, int>>>());
+  FILE *nmap = fopen(nmap_file, "r");
+  FILE *emap = fopen(emap_file, "r");
   char buf[256];
   while (fgets(buf, sizeof(buf), nmap) != NULL) {
     int vnode, vnode_map;
@@ -112,53 +112,58 @@ std::unique_ptr<VNEmbedding> InitializeVNEmbeddingFromFile(
     vn_embedding->node_map->at(vnode) = vnode_map;
   }
   fclose(nmap);
-  while(fgets(buf, sizeof(buf), emap) != NULL) {
+  while (fgets(buf, sizeof(buf), emap) != NULL) {
     int u, v, m, n;
     sscanf(buf, "%d %d %d %d", &u, &v, &m, &n);
     if (u > v) std::swap(u, v);
     if (m > n) std::swap(m, n);
-    if (vn_embedding->edge_map->find(std::make_pair(m, n)) == vn_embedding->edge_map->end()) {
-      vn_embedding->edge_map->insert(std::make_pair(std::make_pair(m, n), std::vector<std::pair<int,int>>()));
+    if (vn_embedding->edge_map->find(std::make_pair(m, n)) ==
+        vn_embedding->edge_map->end()) {
+      vn_embedding->edge_map->insert(std::make_pair(
+          std::make_pair(m, n), std::vector<std::pair<int, int>>()));
     }
-    vn_embedding->edge_map->find(std::make_pair(m, n))->second.push_back(std::make_pair(u, v));
+    vn_embedding->edge_map->find(std::make_pair(m, n))
+        ->second.push_back(std::make_pair(u, v));
   }
   fclose(emap);
   return std::move(vn_embedding);
 }
 
 std::unique_ptr<VNRParameters> InitializeParametersFromFile(
-    const char* parameter_file) {
+    const char *parameter_file) {
   auto parameters = std::unique_ptr<VNRParameters>(new VNRParameters());
-  FILE* param_file = fopen(parameter_file, "r");
+  FILE *param_file = fopen(parameter_file, "r");
   char buffer[256];
-  const char* prefix[] = {"Goal Utilization", "alpha", "beta", "gamma"};
-  enum {UTIL = 0, ALPHA, BETA, GAMMA};
+  const char *prefix[] = {"Goal Utilization", "alpha", "beta", "gamma"};
+  enum {
+    UTIL = 0,
+    ALPHA,
+    BETA,
+    GAMMA
+  };
 
-  while(fgets(buffer, sizeof(buffer), param_file) != NULL) {
+  while (fgets(buffer, sizeof(buffer), param_file) != NULL) {
     for (int i = 0; i < 4; ++i) {
       if (strncmp(buffer, prefix[i], strlen(prefix[i])) == 0) {
-        switch(i) {
+        switch (i) {
           case UTIL:
-            sscanf(buffer + strlen(prefix[i]) + 2, "%lf", 
-                &parameters->util_threshold);
+            sscanf(buffer + strlen(prefix[i]) + 2, "%lf",
+                   &parameters->util_threshold);
             parameters->util_threshold /= 100.0;
             break;
           case ALPHA:
-              sscanf(buffer + strlen(prefix[i]) + 2, "%lf",
-                  &parameters->alpha);
+            sscanf(buffer + strlen(prefix[i]) + 2, "%lf", &parameters->alpha);
             break;
           case BETA:
-              sscanf(buffer + strlen(prefix[i]) + 2, "%lf",
-                  &parameters->beta);
+            sscanf(buffer + strlen(prefix[i]) + 2, "%lf", &parameters->beta);
             break;
           case GAMMA:
-              sscanf(buffer + strlen(prefix[i]) + 2, "%lf",
-                  &parameters->gamma);
+            sscanf(buffer + strlen(prefix[i]) + 2, "%lf", &parameters->gamma);
             break;
           default:
             DEBUG("Invalid parameter specified in %s\n", parameter_file);
         }
-        break;    
+        break;
       }
     }
   }

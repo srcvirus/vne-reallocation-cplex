@@ -6,7 +6,7 @@
 class VNESolutionBuilder {
  public:
   VNESolutionBuilder(VNEReallocationCPLEXSolver *vne_solver_ptr,
-                     Graph *physical_topology, 
+                     Graph *physical_topology,
                      std::vector<std::unique_ptr<Graph>> *virt_topologies)
       : vne_solver_ptr_(vne_solver_ptr),
         physical_topology_(physical_topology),

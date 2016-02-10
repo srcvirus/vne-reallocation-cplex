@@ -39,21 +39,27 @@ int main(int argc, char* argv[]) {
   int num_vns = 0;
   sscanf(buf, "number = %d", &num_vns);
   std::vector<std::unique_ptr<Graph>> virt_topologies;
-  std::vector<std::unique_ptr<std::vector<std::vector<int>>>> location_constraints;
+  std::vector<std::unique_ptr<std::vector<std::vector<int>>>>
+      location_constraints;
   std::vector<std::unique_ptr<VNEmbedding>> vn_embeddings;
   long previous_cost = 0;
   for (int i = 0; i < num_vns; ++i) {
-    const string kVirtTopologyFile = case_directory + "/vnr/vn" + std::to_string(i) + ".txt";
-    const string kVNLocationConstraintFile = case_directory + "/vnr/vnloc" + std::to_string(i) + ".txt";
+    const string kVirtTopologyFile =
+        case_directory + "/vnr/vn" + std::to_string(i) + ".txt";
+    const string kVNLocationConstraintFile =
+        case_directory + "/vnr/vnloc" + std::to_string(i) + ".txt";
     const string kVLinkEmbeddingFile = kVirtTopologyFile + ".semap";
     const string kVNodeEmbeddingFile = kVirtTopologyFile + ".nmap";
-    virt_topologies.emplace_back(InitializeTopologyFromFile(kVirtTopologyFile.c_str()));
+    virt_topologies.emplace_back(
+        InitializeTopologyFromFile(kVirtTopologyFile.c_str()));
     DEBUG(virt_topologies[i]->GetDebugString().c_str());
     location_constraints.emplace_back(InitializeVNLocationsFromFile(
-          kVNLocationConstraintFile.c_str(), virt_topologies[i]->node_count()));
+        kVNLocationConstraintFile.c_str(), virt_topologies[i]->node_count()));
     vn_embeddings.emplace_back(InitializeVNEmbeddingFromFile(
-          kVNodeEmbeddingFile.c_str(), kVLinkEmbeddingFile.c_str()));
-    previous_cost += EmbeddingCost(physical_topology.get(), virt_topologies[i].get(), vn_embeddings[i].get());
+        kVNodeEmbeddingFile.c_str(), kVLinkEmbeddingFile.c_str()));
+    previous_cost +=
+        EmbeddingCost(physical_topology.get(), virt_topologies[i].get(),
+                      vn_embeddings[i].get());
   }
 
   auto vnr_parameters = InitializeParametersFromFile(
@@ -62,12 +68,9 @@ int main(int argc, char* argv[]) {
   DEBUG(physical_topology->GetDebugString().c_str());
 
   std::unique_ptr<VNEReallocationCPLEXSolver> cplex_solver(
-      new VNEReallocationCPLEXSolver(
-        physical_topology,
-        virt_topologies,
-        location_constraints,
-        vn_embeddings,
-        vnr_parameters));
+      new VNEReallocationCPLEXSolver(physical_topology, virt_topologies,
+                                     location_constraints, vn_embeddings,
+                                     vnr_parameters));
   try {
     cplex_solver->BuildModel();
     bool is_success = cplex_solver->Solve();
@@ -78,13 +81,16 @@ int main(int argc, char* argv[]) {
     } else {
       printf("Success\n");
       printf("Previous cost: %ld\n", previous_cost);
-      std::unique_ptr<VNESolutionBuilder> solution_builder(new VNESolutionBuilder(
-            cplex_solver.get(), physical_topology.get(), &virt_topologies));
-      solution_builder->PrintCost((case_directory + "/vnr/new_cost.txt").c_str());
+      std::unique_ptr<VNESolutionBuilder> solution_builder(
+          new VNESolutionBuilder(cplex_solver.get(), physical_topology.get(),
+                                 &virt_topologies));
+      solution_builder->PrintCost(
+          (case_directory + "/vnr/new_cost.txt").c_str());
       solution_builder->PrintNodeMappings((case_directory + "/vnr/").c_str());
       solution_builder->PrintEdgeMappings((case_directory + "/vnr/").c_str());
     }
-  } catch (IloException &e) {
+  }
+  catch (IloException& e) {
     printf("Exception thrown: %s\n", e.getMessage());
   }
   return 0;

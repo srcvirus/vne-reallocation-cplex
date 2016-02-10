@@ -39,9 +39,10 @@ VNEReallocationCPLEXSolver::VNEReallocationCPLEXSolver(
   y_im_u_ = IloInt3dArray(env_, virt_topologies_.size());
   // Initialize is_bottleneck_u_v_;
   is_bottleneck_u_v_ = IloIntVar2dArray(env_, physical_topology->node_count());
-  
+
   for (int u = 0; u < physical_topology_->node_count(); ++u) {
-    is_bottleneck_u_v_[u] = IloIntVarArray(env_, physical_topology_->node_count(), 0, 1);
+    is_bottleneck_u_v_[u] =
+        IloIntVarArray(env_, physical_topology_->node_count(), 0, 1);
   }
 
   for (int i = 0; i < virt_topologies_.size(); ++i) {
@@ -178,8 +179,8 @@ void VNEReallocationCPLEXSolver::BuildModel() {
       }
       constraints_.add(sum <= beta_uv);
       IloNum threshold = (vnr_parameters_->util_threshold * beta_uv);
-      constraints_.add(IloIfThen(env_, sum >= threshold,
-                                 is_bottleneck_u_v_[u][v] == 1));
+      constraints_.add(
+          IloIfThen(env_, sum >= threshold, is_bottleneck_u_v_[u][v] == 1));
       // constraints_.add(IloIfThen(env_, sum < threshold,
       //                           is_bottleneck_u_v_[u][v] == 0));
     }
@@ -218,8 +219,8 @@ void VNEReallocationCPLEXSolver::BuildModel() {
           for (auto& end_point : u_neighbors) {
             int v = end_point.node_id;
             int cost_uv = end_point.cost;
-            objective_ += (vnr_parameters_->alpha) * 
-                            (X_imn_uv_[i][m][n][u][v] * cost_uv * beta_mn);
+            objective_ += (vnr_parameters_->alpha) *
+                          (X_imn_uv_[i][m][n][u][v] * cost_uv * beta_mn);
           }
         }
       }

@@ -36,6 +36,7 @@ class VNEReallocationCPLEXSolver {
   IloIntVar5dArray& X_imn_uv() { return X_imn_uv_; }
   IloIntVar3dArray& Y_im_u() { return Y_im_u_; }
   const VNRParameters* vnr_parameters() const { return vnr_parameters_; }
+
  private:
   IloEnv env_;
   IloModel model_;

@@ -9,7 +9,7 @@ void VNESolutionBuilder::PrintEdgeMappings(const char *vnr_directory) {
   for (int i = 0; i < virt_topologies_->size(); ++i) {
     std::string emap_file = vnr_directory;
     emap_file += "vn" + std::to_string(i) + ".edge_remap.txt";
-    FILE* outfile = fopen(emap_file.c_str(), "w");
+    FILE *outfile = fopen(emap_file.c_str(), "w");
     for (int m = 0; m < virt_topologies_->at(i)->node_count(); ++m) {
       auto &m_neighbors = virt_topologies_->at(i)->adj_list()->at(m);
       for (auto vend_point : m_neighbors) {
@@ -23,8 +23,10 @@ void VNESolutionBuilder::PrintEdgeMappings(const char *vnr_directory) {
               printf(
                   "VN %d: Virtual edge (%d, %d) --> physical edge (%d, %d)\n",
                   i, m, n, u, v);
-              fprintf(outfile, "VN %d: Virtual edge (%d, %d) --> physical "
-                               "edge (%d, %d)\n", i, m, n, u, v);
+              fprintf(outfile,
+                      "VN %d: Virtual edge (%d, %d) --> physical "
+                      "edge (%d, %d)\n",
+                      i, m, n, u, v);
             }
           }
         }
@@ -40,12 +42,13 @@ void VNESolutionBuilder::PrintNodeMappings(const char *vnr_directory) {
   for (int i = 0; i < virt_topologies_->size(); ++i) {
     std::string nmap_file = vnr_directory;
     nmap_file += "vn" + std::to_string(i) + ".node_remap.txt";
-    FILE* outfile = fopen(nmap_file.c_str(), "w");
+    FILE *outfile = fopen(nmap_file.c_str(), "w");
     for (int m = 0; m < virt_topologies_->at(i)->node_count(); ++m) {
       for (int u = 0; u < physical_topology_->node_count(); ++u) {
         if (fabs(cplex.getValue(Y_im_u[i][m][u]) - 1) < EPS) {
           printf("VN %d: Virtual node %d --> physical node %d\n", i, m, u);
-          fprintf(outfile, "VN %d: Virtual node %d --> physical node %d\n", i, m, u);
+          fprintf(outfile, "VN %d: Virtual node %d --> physical node %d\n", i,
+                  m, u);
         }
       }
     }
