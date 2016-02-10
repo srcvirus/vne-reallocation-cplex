@@ -42,7 +42,6 @@ int main(int argc, char* argv[]) {
   std::vector<std::unique_ptr<std::vector<std::vector<int>>>>
       location_constraints;
   std::vector<std::unique_ptr<VNEmbedding>> vn_embeddings;
-  long previous_cost = 0;
   for (int i = 0; i < num_vns; ++i) {
     const string kVirtTopologyFile =
         case_directory + "/vnr/vn" + std::to_string(i) + ".txt";
@@ -57,38 +56,57 @@ int main(int argc, char* argv[]) {
         kVNLocationConstraintFile.c_str(), virt_topologies[i]->node_count()));
     vn_embeddings.emplace_back(InitializeVNEmbeddingFromFile(
         kVNodeEmbeddingFile.c_str(), kVLinkEmbeddingFile.c_str()));
-    previous_cost +=
-        EmbeddingCost(physical_topology.get(), virt_topologies[i].get(),
-                      vn_embeddings[i].get());
   }
-  ComputePhysicalNetworkCapacity(physical_topology.get(),
-      virt_topologies, vn_embeddings);
+  ComputePhysicalNetworkCapacity(physical_topology.get(), virt_topologies,
+                                 vn_embeddings);
   auto vnr_parameters = InitializeParametersFromFile(
       (case_directory + "/optimize_para.txt").c_str());
   DEBUG("Num VNs = %d\n", num_vns);
   DEBUG(physical_topology->GetDebugString().c_str());
 
+  double prev_cost = VNRCost(physical_topology.get(), virt_topologies,
+                             vn_embeddings, vnr_parameters.get());
+  int prev_num_bottlenecks =
+      GetNumBottleneckLinks(physical_topology.get(), virt_topologies,
+                            vn_embeddings, vnr_parameters.get());
+
+  FILE* f = fopen((case_directory + "/vnr/prev_cost").c_str(), "w");
+  fprintf(f, "%lf\n", prev_cost);
+  fclose(f);
+
+  f = fopen((case_directory + "/vnr/prev_bnecks").c_str(), "w");
+  fprintf(f, "%d\n", prev_num_bottlenecks);
+  fclose(f);
+
   std::unique_ptr<VNEReallocationCPLEXSolver> cplex_solver(
       new VNEReallocationCPLEXSolver(physical_topology, virt_topologies,
                                      location_constraints, vn_embeddings,
                                      vnr_parameters));
+  std::vector<std::unique_ptr<VNEmbedding>> new_vn_embeddings;
   try {
     cplex_solver->BuildModel();
     bool is_success = cplex_solver->Solve();
     auto& cplex = cplex_solver->cplex();
-    if (!is_success) {
-      std::cout << "Solution status: " << cplex.getStatus() << std::endl;
-      std::cout << "X : " << cplex.getCplexStatus() << std::endl;
-    } else {
+    std::unique_ptr<VNESolutionBuilder> solution_builder(new VNESolutionBuilder(
+        cplex_solver.get(), physical_topology.get(), &virt_topologies));
+    solution_builder->PrintSolutionStatus(
+        (case_directory + "/vnr/status").c_str());
+    if (is_success) {
       printf("Success\n");
-      printf("Previous cost: %ld\n", previous_cost);
-      std::unique_ptr<VNESolutionBuilder> solution_builder(
-          new VNESolutionBuilder(cplex_solver.get(), physical_topology.get(),
-                                 &virt_topologies));
+      printf("Previous cost: %lf\n", prev_cost);
       solution_builder->PrintCost(
           (case_directory + "/vnr/new_cost.txt").c_str());
       solution_builder->PrintNodeMappings((case_directory + "/vnr/").c_str());
       solution_builder->PrintEdgeMappings((case_directory + "/vnr/").c_str());
+      for (int i = 0; i < num_vns; ++i) {
+        new_vn_embeddings.emplace_back(solution_builder->GenerateEmbedding(i));
+      }
+      int new_num_bottlenecks =
+          GetNumBottleneckLinks(physical_topology.get(), virt_topologies,
+                                new_vn_embeddings, vnr_parameters.get());
+      f = fopen((case_directory + "/vnr/new_bnecks").c_str(), "w");
+      fprintf(f, "%d\n", new_num_bottlenecks);
+      fclose(f);
     }
   }
   catch (IloException& e) {

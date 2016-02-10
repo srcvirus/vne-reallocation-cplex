@@ -15,6 +15,8 @@ class VNESolutionBuilder {
   void PrintEdgeMappings(const char *vnr_directory);
   void PrintNodeMappings(const char *vnr_directory);
   void PrintCost(const char *filename);
+  void PrintSolutionStatus(const char *filename);
+  std::unique_ptr<VNEmbedding> GenerateEmbedding(int vn_index);
 
  private:
   VNEReallocationCPLEXSolver *vne_solver_ptr_;

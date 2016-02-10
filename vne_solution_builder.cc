@@ -14,7 +14,7 @@ void VNESolutionBuilder::PrintEdgeMappings(const char *vnr_directory) {
       auto &m_neighbors = virt_topologies_->at(i)->adj_list()->at(m);
       for (auto vend_point : m_neighbors) {
         int n = vend_point.node_id;
-        if (m < n) continue;
+        if (m > n) continue;
         for (int u = 0; u < physical_topology_->node_count(); ++u) {
           auto &u_neighbors = physical_topology_->adj_list()->at(u);
           for (auto &end_point : u_neighbors) {
@@ -56,6 +56,55 @@ void VNESolutionBuilder::PrintNodeMappings(const char *vnr_directory) {
   }
 }
 
+std::unique_ptr<VNEmbedding> VNESolutionBuilder::GenerateEmbedding(
+    int vn_index) {
+  std::unique_ptr<VNEmbedding> embedding(new VNEmbedding());
+  embedding->node_map = std::unique_ptr<std::vector<int>>(
+      new std::vector<int>(virt_topologies_->at(vn_index)->node_count()));
+  embedding->edge_map = std::unique_ptr<
+      std::map<std::pair<int, int>, std::vector<std::pair<int, int>>>>(
+      new std::map<std::pair<int, int>, std::vector<std::pair<int, int>>>());
+  auto &cplex = vne_solver_ptr_->cplex();
+
+  // Populate Node Mapping.
+  auto &Y_im_u = vne_solver_ptr_->Y_im_u();
+  for (int m = 0; m < virt_topologies_->at(vn_index)->node_count(); ++m) {
+    for (int u = 0; u < physical_topology_->node_count(); ++u) {
+      if (fabs(cplex.getValue(Y_im_u[vn_index][m][u]) - 1) < EPS) {
+        embedding->node_map->at(m) = u;
+        break;
+      }
+    }
+  }
+
+  // Populate Edge Mapping.
+  auto &X_imn_uv = vne_solver_ptr_->X_imn_uv();
+  for (int m = 0; m < virt_topologies_->at(vn_index)->node_count(); ++m) {
+    auto &m_neighbors = virt_topologies_->at(vn_index)->adj_list()->at(m);
+    for (auto vend_point : m_neighbors) {
+      int n = vend_point.node_id;
+      if (m > n) continue;
+      for (int u = 0; u < physical_topology_->node_count(); ++u) {
+        auto &u_neighbors = physical_topology_->adj_list()->at(u);
+        for (auto &end_point : u_neighbors) {
+          int v = end_point.node_id;
+          if (fabs(cplex.getValue(X_imn_uv[vn_index][m][n][u][v]) - 1) < EPS) {
+            if (embedding->edge_map->find(std::make_pair(m, n)) ==
+                embedding->edge_map->end()) {
+              embedding->edge_map->insert(std::make_pair(
+                  std::make_pair(m, n), std::vector<std::pair<int, int>>()));
+            }
+            embedding->edge_map->find(std::make_pair(m, n))
+                ->second.push_back(std::make_pair(u, v));
+          }
+        }
+      }
+    }
+  }
+
+  return std::move(embedding);
+}
+
 void VNESolutionBuilder::PrintCost(const char *filename) {
   FILE *outfile = NULL;
   if (filename) outfile = fopen(filename, "w");
@@ -63,5 +112,15 @@ void VNESolutionBuilder::PrintCost(const char *filename) {
   printf("Cost = %lf\n", cplex.getObjValue());
   if (outfile) {
     fprintf(outfile, "Cost = %lf\n", cplex.getObjValue());
+  }
+}
+
+void VNESolutionBuilder::PrintSolutionStatus(const char *filename) {
+  auto &cplex = vne_solver_ptr_->cplex();
+  std::cout << "Solution status: " << cplex.getStatus() << std::endl;
+  if (filename) {
+    std::ofstream ofs(filename);
+    ofs << cplex.getStatus();
+    ofs.close();
   }
 }

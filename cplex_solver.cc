@@ -182,8 +182,8 @@ void VNEReallocationCPLEXSolver::BuildModel() {
       // IloNum threshold = (vnr_parameters_->util_threshold * beta_uv);
       constraints_.add(
           IloIfThen(env_, sum >= threshold, is_bottleneck_u_v_[u][v] == 1));
-      constraints_.add(IloIfThen(env_, sum < threshold,
-                                 is_bottleneck_u_v_[u][v] == 0));
+      constraints_.add(
+          IloIfThen(env_, sum < threshold, is_bottleneck_u_v_[u][v] == 0));
     }
   }
 
@@ -213,7 +213,7 @@ void VNEReallocationCPLEXSolver::BuildModel() {
       auto& m_neighbors = virt_topologies_[i]->adj_list()->at(m);
       for (auto& vend_point : m_neighbors) {
         int n = vend_point.node_id;
-        if (m < n) continue;
+        if (m > n) continue;
         long beta_mn = vend_point.bandwidth;
         for (int u = 0; u < physical_topology_->node_count(); ++u) {
           auto& u_neighbors = physical_topology_->adj_list()->at(u);

@@ -84,8 +84,7 @@ class Graph {
   void set_edge_bandwidth(int u, int v, long bw) {
     auto& neighbors = adj_list_->at(u);
     for (auto& end_point : neighbors) {
-      if (end_point.node_id == v) 
-        end_point.bandwidth = bw;
+      if (end_point.node_id == v) end_point.bandwidth = bw;
     }
   }
 
