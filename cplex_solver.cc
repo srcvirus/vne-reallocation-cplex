@@ -245,6 +245,7 @@ bool VNEReallocationCPLEXSolver::Solve() {
   bool is_success;
   int n_threads = sysconf(_SC_NPROCESSORS_ONLN) * 2;
   cplex_.setParam(IloCplex::Threads, n_threads);
+  cplex_.setParam(IloCplex::PreDual, true);
   is_success = cplex_.solve();
   return is_success;
 }
