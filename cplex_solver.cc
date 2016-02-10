@@ -178,11 +178,12 @@ void VNEReallocationCPLEXSolver::BuildModel() {
         }
       }
       constraints_.add(sum <= beta_uv);
-      IloNum threshold = (vnr_parameters_->util_threshold * beta_uv);
+      IloInt threshold = (vnr_parameters_->util_threshold * beta_uv);
+      // IloNum threshold = (vnr_parameters_->util_threshold * beta_uv);
       constraints_.add(
           IloIfThen(env_, sum >= threshold, is_bottleneck_u_v_[u][v] == 1));
-      // constraints_.add(IloIfThen(env_, sum < threshold,
-      //                           is_bottleneck_u_v_[u][v] == 0));
+      constraints_.add(IloIfThen(env_, sum < threshold,
+                                 is_bottleneck_u_v_[u][v] == 0));
     }
   }
 

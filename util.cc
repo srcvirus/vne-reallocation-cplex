@@ -84,3 +84,26 @@ long EmbeddingCost(const Graph* phys_topology, const Graph* virt_topology,
   }
   return cost;
 }
+
+void ComputePhysicalNetworkCapacity(
+    Graph* phys_topology,
+    const std::vector<std::unique_ptr<Graph>>& virt_topologies,
+    const std::vector<std::unique_ptr<VNEmbedding>>& vn_embeddings) {
+  for (int i = 0; i < virt_topologies.size(); ++i) {
+    const Graph* vn = virt_topologies[i].get();
+    const VNEmbedding* vne = vn_embeddings[i].get();
+    for (auto emap_it = vne->edge_map->begin(); emap_it != vne->edge_map->end();
+        ++emap_it) {
+      auto& vlink = emap_it->first;
+      auto& plinks = emap_it->second;
+      int m = vlink.first, n = vlink.second;
+      long b_mn = vn->get_edge_bandwidth(m, n);
+      for (auto plink_it = plinks.begin(); plink_it != plinks.end(); ++plink_it) {
+        int u = plink_it->first, v = plink_it->second;
+        long cur_bw = phys_topology->get_edge_bandwidth(u, v);
+        phys_topology->set_edge_bandwidth(u, v, cur_bw + b_mn);
+        phys_topology->set_edge_bandwidth(v, u, cur_bw + b_mn);
+      }
+    }
+  }
+}

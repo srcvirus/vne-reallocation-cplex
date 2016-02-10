@@ -74,10 +74,18 @@ class Graph {
     }
   }
 
-  int get_edge_bandwidth(int u, int v) const {
+  long get_edge_bandwidth(int u, int v) const {
     auto& neighbors = adj_list_->at(u);
     for (auto& end_point : neighbors) {
       if (end_point.node_id == v) return end_point.bandwidth;
+    }
+  }
+
+  void set_edge_bandwidth(int u, int v, long bw) {
+    auto& neighbors = adj_list_->at(u);
+    for (auto& end_point : neighbors) {
+      if (end_point.node_id == v) 
+        end_point.bandwidth = bw;
     }
   }
 

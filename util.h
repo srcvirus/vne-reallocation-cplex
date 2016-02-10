@@ -42,4 +42,13 @@ std::vector<std::pair<T, double> > GetCDF(const std::vector<T> &data);
 // Returns the cost of embedding virt_topology on phys_topology.
 long EmbeddingCost(const Graph *phys_topology, const Graph *virt_topology,
                    const VNEmbedding *embedding);
+
+// If the input physical network contains residual bandwidth then compute the
+// bandwidth capacity of the physical links by adding the bandwidths of embedded
+// virtual links.
+void ComputePhysicalNetworkCapacity(
+    Graph *phys_topology, 
+    const std::vector<std::unique_ptr<Graph>>& virt_topologies,
+    const std::vector<std::unique_ptr<VNEmbedding>>& vn_embeddings);
+
 #endif  // UTIL_H_

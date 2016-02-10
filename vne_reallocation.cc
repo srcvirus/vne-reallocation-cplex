@@ -61,7 +61,8 @@ int main(int argc, char* argv[]) {
         EmbeddingCost(physical_topology.get(), virt_topologies[i].get(),
                       vn_embeddings[i].get());
   }
-
+  ComputePhysicalNetworkCapacity(physical_topology.get(),
+      virt_topologies, vn_embeddings);
   auto vnr_parameters = InitializeParametersFromFile(
       (case_directory + "/optimize_para.txt").c_str());
   DEBUG("Num VNs = %d\n", num_vns);
