@@ -70,12 +70,19 @@ int main(int argc, char* argv[]) {
       GetNumBottleneckLinks(physical_topology.get(), virt_topologies,
                             vn_embeddings, vnr_parameters.get());
 
+  long prev_bw_cost = static_cast<long>((prev_cost - (vnr_parameters->beta * prev_num_bottlenecks)) / 
+                        vnr_parameters->alpha);
+                  
   FILE* f = fopen((case_directory + "/vnr/prev_cost").c_str(), "w");
   fprintf(f, "%lf\n", prev_cost);
   fclose(f);
 
   f = fopen((case_directory + "/vnr/prev_bnecks").c_str(), "w");
   fprintf(f, "%d\n", prev_num_bottlenecks);
+  fclose(f);
+  
+  f = fopen((case_directory + "/vnr/prev_bw_cost").c_str(), "w");
+  fprintf(f, "%ld\n", prev_bw_cost);
   fclose(f);
 
   std::unique_ptr<VNEReallocationCPLEXSolver> cplex_solver(
@@ -95,7 +102,7 @@ int main(int argc, char* argv[]) {
       printf("Success\n");
       printf("Previous cost: %lf\n", prev_cost);
       solution_builder->PrintCost(
-          (case_directory + "/vnr/new_cost.txt").c_str());
+          (case_directory + "/vnr/new_cost").c_str());
       solution_builder->PrintNodeMappings((case_directory + "/vnr/").c_str());
       solution_builder->PrintEdgeMappings((case_directory + "/vnr/").c_str());
       for (int i = 0; i < num_vns; ++i) {
@@ -106,6 +113,12 @@ int main(int argc, char* argv[]) {
                                 new_vn_embeddings, vnr_parameters.get());
       f = fopen((case_directory + "/vnr/new_bnecks").c_str(), "w");
       fprintf(f, "%d\n", new_num_bottlenecks);
+      fclose(f);
+
+      long new_bw_cost = static_cast<long>((cplex.getObjValue() - (vnr_parameters->beta * new_num_bottlenecks)) / 
+                            vnr_parameters->alpha);
+      f = fopen((case_directory + "/vnr/new_bw_cost").c_str(), "w");
+      fprintf(f, "%ld\n", new_bw_cost);
       fclose(f);
     }
   }
