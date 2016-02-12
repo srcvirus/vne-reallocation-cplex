@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
       f = fopen((case_directory + "/vnr/new_bnecks").c_str(), "w");
       fprintf(f, "%d\n", new_num_bottlenecks);
       fclose(f);
-      long new_bw_cost = BandwidthCost(physical_topology.get(), virt_topologies, vn_embeddings);
+      long new_bw_cost = BandwidthCost(physical_topology.get(), virt_topologies, new_vn_embeddings);
       f = fopen((case_directory + "/vnr/new_bw_cost").c_str(), "w");
       fprintf(f, "%ld\n", new_bw_cost);
       fclose(f);
