@@ -233,7 +233,9 @@ void VNEReallocationCPLEXSolver::BuildModel() {
     auto& u_neighbors = physical_topology_->adj_list()->at(u);
     for (auto& end_point : u_neighbors) {
       int v = end_point.node_id;
-      objective_ += (vnr_parameters_->beta * is_bottleneck_u_v_[u][v]);
+      if (u < v) {
+        objective_ += (vnr_parameters_->beta * is_bottleneck_u_v_[u][v]);
+      }
     }
   }
   constraints_.add(objective_ >= 0.0);
