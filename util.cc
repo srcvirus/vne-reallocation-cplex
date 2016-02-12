@@ -118,7 +118,7 @@ int GetNumBottleneckLinks(
   for (int u = 0; u < phys_topology->node_count(); ++u) {
     for (auto& end_point : phys_topology->adj_list()->at(u)) {
       int v = end_point.node_id;
-      long b_uv = end_point.bandwidth;
+      long b_uv = phys_topology->get_edge_bandwidth(u, v);
       util_matrix[u][v] /= static_cast<double>(b_uv);
       if (u < v && util_matrix[u][v] >= vnr_param->util_threshold) {
         ++num_bottlenecks;
