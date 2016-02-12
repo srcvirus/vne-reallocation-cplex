@@ -61,6 +61,9 @@ class Graph {
     for (int i = 0; i < adj_list_->at(u).size(); ++i) {
       if (adj_list_->at(u)[i].node_id == v) return;
     }
+    for (int i = 0; i < adj_list_->at(v).size(); ++i) {
+      if (adj_list_->at(v)[i].node_id == u) return;
+    }
     adj_list_->at(u).push_back(edge_endpoint(v, bw, delay, cost));
     adj_list_->at(v).push_back(edge_endpoint(u, bw, delay, cost));
     ++edge_count_;

@@ -147,6 +147,7 @@ void VNEReallocationCPLEXSolver::BuildModel() {
       auto& m_neighbors = virt_topologies_[i]->adj_list()->at(m);
       for (auto& vend_point : m_neighbors) {
         int n = vend_point.node_id;
+        if (m > n) continue;
         IloIntExpr sum(env_);
         for (int u = 0; u < physical_topology_->node_count(); ++u) {
           auto& u_neighbors = physical_topology_->adj_list()->at(u);
@@ -172,6 +173,7 @@ void VNEReallocationCPLEXSolver::BuildModel() {
           auto& m_neighbors = virt_topologies_[i]->adj_list()->at(m);
           for (auto& vend_point : m_neighbors) {
             int n = vend_point.node_id;
+            if (m > n) continue;
             int beta_mn = vend_point.bandwidth;
             sum += X_imn_uv_[i][m][n][u][v] * beta_mn;
           }
@@ -193,6 +195,7 @@ void VNEReallocationCPLEXSolver::BuildModel() {
       auto& m_neighbors = virt_topologies_[i]->adj_list()->at(m);
       for (auto& vend_point : m_neighbors) {
         int n = vend_point.node_id;
+        if (m > n) continue;
         for (int u = 0; u < physical_topology_->node_count(); ++u) {
           IloIntExpr sum(env_);
           auto& u_neighbors = physical_topology_->adj_list()->at(u);
@@ -233,9 +236,8 @@ void VNEReallocationCPLEXSolver::BuildModel() {
     auto& u_neighbors = physical_topology_->adj_list()->at(u);
     for (auto& end_point : u_neighbors) {
       int v = end_point.node_id;
-      if (u < v) {
-        objective_ += (vnr_parameters_->beta * is_bottleneck_u_v_[u][v]);
-      }
+      if (u > v) continue;
+      objective_ += (vnr_parameters_->beta * is_bottleneck_u_v_[u][v]);
     }
   }
   constraints_.add(objective_ >= 0.0);
