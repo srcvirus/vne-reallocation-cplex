@@ -155,8 +155,8 @@ void VNEReallocationCPLEXSolver::BuildModel() {
             int v = end_point.node_id;
             constraints_.add(IloIfThen(env_, X_imn_uv_[i][m][n][u][v] == 1,
                                        X_imn_uv_[i][m][n][v][u] == 0));
-            constraints_.add(IloIfThen(env_, X_imn_uv_[i][m][n][u][v] == 0,
-                                       X_imn_uv_[i][m][n][v][u] == 1));
+            constraints_.add(IloIfThen(env_, X_imn_uv_[i][m][n][v][u] == 1,
+                                       X_imn_uv_[i][m][n][u][v] == 0));
             sum += X_imn_uv_[i][m][n][u][v];
           }
         }
