@@ -153,6 +153,8 @@ void VNEReallocationCPLEXSolver::BuildModel() {
           auto& u_neighbors = physical_topology_->adj_list()->at(u);
           for (auto& end_point : u_neighbors) {
             int v = end_point.node_id;
+            constraints_.add(
+                X_imn_uv_[i][m][n][u][v] + X_imn_uv_[i][m][n][v][u] <= 1);
             sum += X_imn_uv_[i][m][n][u][v];
           }
         }
@@ -167,7 +169,7 @@ void VNEReallocationCPLEXSolver::BuildModel() {
     for (auto& end_point : u_neighbors) {
       int v = end_point.node_id;
       int beta_uv = end_point.bandwidth;
-      IloNumExpr sum(env_);
+      IloIntExpr sum(env_);
       for (int i = 0; i < virt_topologies_.size(); ++i) {
         for (int m = 0; m < virt_topologies_[i]->node_count(); ++m) {
           auto& m_neighbors = virt_topologies_[i]->adj_list()->at(m);
@@ -175,21 +177,22 @@ void VNEReallocationCPLEXSolver::BuildModel() {
             int n = vend_point.node_id;
             if (m > n) continue;
             int beta_mn = vend_point.bandwidth;
-            sum += X_imn_uv_[i][m][n][u][v] * beta_mn;
+            sum += ((X_imn_uv_[i][m][n][u][v] + X_imn_uv_[i][m][n][u][v]) *
+                    beta_mn);
           }
         }
       }
       constraints_.add(sum <= beta_uv);
+
       IloInt threshold = (vnr_parameters_->util_threshold * beta_uv);
-      // IloNum threshold = (vnr_parameters_->util_threshold * beta_uv);
       constraints_.add(
-          IloIfThen(env_, sum >= threshold, is_bottleneck_u_v_[u][v] == 1));
+          IloIfThen(env_, sum > threshold, is_bottleneck_u_v_[u][v] == 1));
       constraints_.add(
-          IloIfThen(env_, is_bottleneck_u_v_[u][v] == 1, sum >= threshold));
+          IloIfThen(env_, is_bottleneck_u_v_[u][v] == 1, sum > threshold));
       constraints_.add(
-         IloIfThen(env_, sum < threshold, is_bottleneck_u_v_[u][v] == 0));
+          IloIfThen(env_, sum <= threshold, is_bottleneck_u_v_[u][v] == 0));
       constraints_.add(
-          IloIfThen(env_, is_bottleneck_u_v_[u][v] == 0, sum < threshold));
+          IloIfThen(env_, is_bottleneck_u_v_[u][v] == 0, sum <= threshold));
     }
   }
 

@@ -35,6 +35,7 @@ class VNEReallocationCPLEXSolver {
   IloCplex& cplex() { return cplex_; }
   IloIntVar5dArray& X_imn_uv() { return X_imn_uv_; }
   IloIntVar3dArray& Y_im_u() { return Y_im_u_; }
+  IloIntVar2dArray& is_bottleneck_u_v() { return is_bottleneck_u_v_; }
   const VNRParameters* vnr_parameters() const { return vnr_parameters_; }
 
  private:
