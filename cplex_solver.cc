@@ -179,7 +179,7 @@ void VNEReallocationCPLEXSolver::BuildModel() {
             int n = vend_point.node_id;
             if (m > n) continue;
             int beta_mn = vend_point.bandwidth;
-            sum += ((X_imn_uv_[i][m][n][u][v] + X_imn_uv_[i][m][n][u][v]) *
+            sum += ((X_imn_uv_[i][m][n][u][v] + X_imn_uv_[i][m][n][v][u]) *
                     beta_mn);
           }
         }
