@@ -153,8 +153,10 @@ void VNEReallocationCPLEXSolver::BuildModel() {
           auto& u_neighbors = physical_topology_->adj_list()->at(u);
           for (auto& end_point : u_neighbors) {
             int v = end_point.node_id;
-            constraints_.add(
-                X_imn_uv_[i][m][n][u][v] + X_imn_uv_[i][m][n][v][u] <= 1);
+            constraints_.add(IloIfThen(env_, X_imn_uv_[i][m][n][u][v] == 1,
+                                       X_imn_uv_[i][m][n][v][u] == 0));
+            constraints_.add(IloIfThen(env_, X_imn_uv_[i][m][n][u][v] == 0,
+                                       X_imn_uv_[i][m][n][v][u] == 1));
             sum += X_imn_uv_[i][m][n][u][v];
           }
         }
