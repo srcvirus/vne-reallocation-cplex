@@ -128,6 +128,42 @@ int GetNumBottleneckLinks(
   return num_bottlenecks;
 }
 
+double GetMaxPLinkUtilization(
+    const Graph* phys_topology,
+    const std::vector<std::unique_ptr<Graph>>& virt_topologies,
+    const std::vector<std::unique_ptr<VNEmbedding>>& vn_embeddings) {
+  std::vector<std::vector<double>> util_matrix(
+      phys_topology->node_count(),
+      std::vector<double>(phys_topology->node_count(), 0.0));
+  for (int i = 0; i < virt_topologies.size(); ++i) {
+    const Graph* virt_topology = virt_topologies[i].get();
+    const VNEmbedding* embedding = vn_embeddings[i].get();
+    for (auto emap_it = embedding->edge_map->begin();
+         emap_it != embedding->edge_map->end(); ++emap_it) {
+      auto& vlink = emap_it->first;
+      auto& plinks = emap_it->second;
+      for (auto& e : plinks) {
+        long b_mn =
+            virt_topology->get_edge_bandwidth(vlink.first, vlink.second);
+        util_matrix[e.first][e.second] += b_mn;
+        util_matrix[e.second][e.first] += b_mn;
+      }
+    }
+  }
+  double max_utilization = 0.0;
+  for (int u = 0; u < phys_topology->node_count(); ++u) {
+    for (auto& end_point : phys_topology->adj_list()->at(u)) {
+      int v = end_point.node_id;
+      long b_uv = phys_topology->get_edge_bandwidth(u, v);
+      util_matrix[u][v] /= static_cast<double>(b_uv);
+      if (u < v && util_matrix[u][v] > max_utilization) {
+        max_utilization = util_matrix[u][v];
+      }
+    }
+  }
+  return max_utilization;
+}
+
 double VNRCost(const Graph* phys_topology,
                const std::vector<std::unique_ptr<Graph>>& virt_topologies,
                const std::vector<std::unique_ptr<VNEmbedding>>& vn_embeddings,

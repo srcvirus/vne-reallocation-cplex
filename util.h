@@ -53,6 +53,11 @@ int GetNumBottleneckLinks(
     const std::vector<std::unique_ptr<VNEmbedding>>& vn_embeddings,
     const VNRParameters* vnr_param);
 
+double GetMaxPLinkUtilization(
+    const Graph* phys_topology,
+    const std::vector<std::unique_ptr<Graph>>& virt_topologies,
+    const std::vector<std::unique_ptr<VNEmbedding>>& vn_embeddings);
+
 // Compute the cost of a set of embeddings using our cost function.
 double VNRCost(const Graph* phys_topology,
                const std::vector<std::unique_ptr<Graph>>& virt_topologies,

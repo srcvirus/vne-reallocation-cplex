@@ -58,6 +58,9 @@ std::unique_ptr<std::vector<std::vector<std::string>>> ReadCSVFile(
 std::unique_ptr<Graph> InitializeTopologyFromFile(const char *filename) {
   int node_count = 0, edge_count = 0;
   auto csv_vector = ReadCSVFile(filename);
+  if (csv_vector.get() == NULL) {
+    return NULL;
+  }
   std::unique_ptr<Graph> graph(new Graph());
   for (int i = 0; i < csv_vector->size(); ++i) {
     auto &row = csv_vector->at(i);
@@ -83,6 +86,9 @@ std::unique_ptr<std::vector<std::vector<int>>> InitializeVNLocationsFromFile(
   auto ret_vector = std::unique_ptr<std::vector<std::vector<int>>>(
       new std::vector<std::vector<int>>(num_virtual_nodes));
   auto csv_vector = ReadCSVFile(filename);
+  if (csv_vector.get() == NULL) {
+    return NULL;
+  }
   for (int i = 0; i < csv_vector->size(); ++i) {
     auto &row = csv_vector->at(i);
     int vnode_id = atoi(row[0].c_str());

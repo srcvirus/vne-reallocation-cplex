@@ -24,25 +24,13 @@ int main(int argc, char* argv[]) {
   const string kPhysicalTopologyFile = case_directory + "/sn.txt";
   auto physical_topology =
       InitializeTopologyFromFile(kPhysicalTopologyFile.c_str());
-  const string kInfoFileName = case_directory + "/info";
-  FILE* info_file = fopen(kInfoFileName.c_str(), "r");
-  char buf[64];
-  while (fgets(buf, sizeof(buf), info_file) != NULL) {
-    string buf_wrap = buf;
-    if (!buf_wrap.compare(0, 3, "VN:")) break;
-  }
-  if (fgets(buf, sizeof(buf), info_file) == NULL) {
-    printf("info file has invalid format\n");
-    return 1;
-  }
-  fclose(info_file);
   int num_vns = 0;
-  sscanf(buf, "number = %d", &num_vns);
   std::vector<std::unique_ptr<Graph>> virt_topologies;
   std::vector<std::unique_ptr<std::vector<std::vector<int>>>>
       location_constraints;
   std::vector<std::unique_ptr<VNEmbedding>> vn_embeddings;
-  for (int i = 0; i < num_vns; ++i) {
+  int i = 0;
+  while(true) {
     const string kVirtTopologyFile =
         case_directory + "/vnr/vn" + std::to_string(i) + ".txt";
     const string kVNLocationConstraintFile =
@@ -51,11 +39,17 @@ int main(int argc, char* argv[]) {
     const string kVNodeEmbeddingFile = kVirtTopologyFile + ".nmap";
     virt_topologies.emplace_back(
         InitializeTopologyFromFile(kVirtTopologyFile.c_str()));
+    if (virt_topologies[i].get() == NULL) {
+      virt_topologies.pop_back();
+      break;
+    }
     DEBUG(virt_topologies[i]->GetDebugString().c_str());
     location_constraints.emplace_back(InitializeVNLocationsFromFile(
         kVNLocationConstraintFile.c_str(), virt_topologies[i]->node_count()));
     vn_embeddings.emplace_back(InitializeVNEmbeddingFromFile(
         kVNodeEmbeddingFile.c_str(), kVLinkEmbeddingFile.c_str()));
+    ++i;
+    ++num_vns;
   }
   ComputePhysicalNetworkCapacity(physical_topology.get(), virt_topologies,
                                  vn_embeddings);
@@ -71,6 +65,9 @@ int main(int argc, char* argv[]) {
                             vn_embeddings, vnr_parameters.get());
   long prev_bw_cost =
       BandwidthCost(physical_topology.get(), virt_topologies, vn_embeddings);
+  double old_max_plink_util = 
+    GetMaxPLinkUtilization(physical_topology.get(), virt_topologies, 
+                           vn_embeddings);
 
   FILE* f = fopen((case_directory + "/vnr/prev_cost").c_str(), "w");
   fprintf(f, "%lf\n", prev_cost);
@@ -82,6 +79,10 @@ int main(int argc, char* argv[]) {
 
   f = fopen((case_directory + "/vnr/prev_bw_cost").c_str(), "w");
   fprintf(f, "%ld\n", prev_bw_cost);
+  fclose(f);
+  
+  f = fopen((case_directory + "/vnr/prev_max_plink_util").c_str(), "w");
+  fprintf(f, "%lf\n", old_max_plink_util);
   fclose(f);
 
   std::unique_ptr<VNEReallocationCPLEXSolver> cplex_solver(
@@ -111,6 +112,12 @@ int main(int argc, char* argv[]) {
                                 new_vn_embeddings, vnr_parameters.get());
       f = fopen((case_directory + "/vnr/new_bnecks").c_str(), "w");
       fprintf(f, "%d\n", new_num_bottlenecks);
+      fclose(f);
+      double max_plink_util = 
+        GetMaxPLinkUtilization(physical_topology.get(), virt_topologies,
+                               new_vn_embeddings);
+      f = fopen((case_directory + "/vnr/new_max_plink_util").c_str(), "w");
+      fprintf(f, "%lf\n", max_plink_util);
       fclose(f);
       long new_bw_cost = BandwidthCost(physical_topology.get(), virt_topologies,
                                        new_vn_embeddings);
