@@ -19,19 +19,28 @@
 // corresponding edge.
 struct edge_endpoint {
   int node_id;
-  long bandwidth;
-  long residual_bandwidth;
+  long channels;
+  long residual_channels;
   int delay;
   int cost;
-  edge_endpoint(int node_id, long bw, int delay, int cost)
+  std::vector<bool> is_channel_available;
+  edge_endpoint(int node_id, long ch, int delay, int cost)
       : node_id(node_id),
-        bandwidth(bw),
+        channels(ch),
         delay(delay),
-        residual_bandwidth(bw),
-        cost(cost) {}
+        residual_bandwidth(ch),
+        cost(cost),
+        is_channel_available(ch, true) {}
+  edge_endpoint(int node_id, long total_ch, long res_ch, int delay, int cost)
+      : node_id(node_id),
+        channels(total_ch),
+        delay(delay),
+        residual_bandwidth(res_ch),
+        cost(cost),
+        is_channel_available(ch, true) {}
   std::string GetDebugString() {
-    return "ndoe_id = " + std::to_string(node_id) + ", bandwidth = " +
-           std::to_string(bandwidth) + ", delay = " + std::to_string(delay) +
+    return "ndoe_id = " + std::to_string(node_id) + ", channels = " +
+           std::to_string(channels) + ", delay = " + std::to_string(delay) +
            ", cost = " + std::to_string(cost);
   }
 };
@@ -55,7 +64,7 @@ class Graph {
   // u and v are 0-based identifiers of an edge endpoint. An edge is
   // bi-directional, i.e., calling Graph::add_edge with u = 1, v = 3 will add
   // both (1, 3) and (3, 1) in the graph.
-  void add_edge(int u, int v, long bw, int delay, int cost) {
+  void add_edge(int u, int v, long total_ch, long res_ch, int delay, int cost) {
     if (adj_list_->size() < u + 1) adj_list_->resize(u + 1);
     if (adj_list_->size() < v + 1) adj_list_->resize(v + 1);
     for (int i = 0; i < adj_list_->at(u).size(); ++i) {
@@ -64,8 +73,8 @@ class Graph {
     for (int i = 0; i < adj_list_->at(v).size(); ++i) {
       if (adj_list_->at(v)[i].node_id == u) return;
     }
-    adj_list_->at(u).push_back(edge_endpoint(v, bw, delay, cost));
-    adj_list_->at(v).push_back(edge_endpoint(u, bw, delay, cost));
+    adj_list_->at(u).push_back(edge_endpoint(v, total_ch, res_ch, delay, cost));
+    adj_list_->at(v).push_back(edge_endpoint(u, total_ch, res_ch, delay, cost));
     ++edge_count_;
     node_count_ = adj_list_->size();
   }
@@ -77,17 +86,10 @@ class Graph {
     }
   }
 
-  long get_edge_bandwidth(int u, int v) const {
+  long get_edge_channels(int u, int v) const {
     auto& neighbors = adj_list_->at(u);
     for (auto& end_point : neighbors) {
-      if (end_point.node_id == v) return end_point.bandwidth;
-    }
-  }
-
-  void set_edge_bandwidth(int u, int v, long bw) {
-    auto& neighbors = adj_list_->at(u);
-    for (auto& end_point : neighbors) {
-      if (end_point.node_id == v) end_point.bandwidth = bw;
+      if (end_point.node_id == v) return end_point.channels;
     }
   }
 
@@ -112,8 +114,8 @@ class Graph {
 
 struct VNEmbedding {
   std::unique_ptr<std::vector<int>> node_map;
-  std::unique_ptr<
-      std::map<std::pair<int, int>, std::vector<std::pair<int, int>>>> edge_map;
+  std::unique_ptr<std::map<std::pair<int, int>, 
+                  std::pair<int,std::vector<std::pair<int, int>>>>> edge_map;
   long cost;
 };
 

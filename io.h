@@ -70,12 +70,13 @@ std::unique_ptr<Graph> InitializeTopologyFromFile(const char *filename) {
     int u = atoi(row[1].c_str());
     int v = atoi(row[2].c_str());
     int cost = atoi(row[4].c_str());
-    long bw = atol(row[5].c_str());
+    long res_ch = atol(row[5].c_str());
+    long total_ch = atol(row[7].c_str());
     int delay = atoi(row[6].c_str());
 
-    DEBUG("Line[%d]: u = %d, v = %d, cost = %d, bw = %ld, delay = %d\n", i, u,
-          v, cost, bw, delay);
-    graph->add_edge(u, v, bw, delay, cost);
+    DEBUG("Line[%d]: u = %d, v = %d, cost = %d, res_ch = %ld, total_ch = %ld, delay = %d\n", i, u,
+          v, cost, res_ch, total_ch, delay);
+    graph->add_edge(u, v, total_ch, delay, cost);
   }
   return std::move(graph);
 }
@@ -105,8 +106,8 @@ std::unique_ptr<VNEmbedding> InitializeVNEmbeddingFromFile(
   vn_embedding->node_map =
       std::unique_ptr<std::vector<int>>(new std::vector<int>());
   vn_embedding->edge_map = std::unique_ptr<
-      std::map<std::pair<int, int>, std::vector<std::pair<int, int>>>>(
-      new std::map<std::pair<int, int>, std::vector<std::pair<int, int>>>());
+      std::map<std::pair<int, int>, std::pair<int, std::vector<std::pair<int, int>>>>>(
+      new std::map<std::pair<int, int>, std::pair<int, std::vector<std::pair<int, int>>>>());
   FILE *nmap = fopen(nmap_file, "r");
   FILE *emap = fopen(emap_file, "r");
   char buf[256];
@@ -119,17 +120,17 @@ std::unique_ptr<VNEmbedding> InitializeVNEmbeddingFromFile(
   }
   fclose(nmap);
   while (fgets(buf, sizeof(buf), emap) != NULL) {
-    int u, v, m, n;
-    sscanf(buf, "%d %d %d %d", &u, &v, &m, &n);
+    int u, v, m, n, dummy, ch_id;
+    sscanf(buf, "%d %d %d %d %d %d", &u, &v, &m, &n, &dummy, &ch_id);
     if (u > v) std::swap(u, v);
     if (m > n) std::swap(m, n);
     if (vn_embedding->edge_map->find(std::make_pair(m, n)) ==
         vn_embedding->edge_map->end()) {
       vn_embedding->edge_map->insert(std::make_pair(
-          std::make_pair(m, n), std::vector<std::pair<int, int>>()));
+          std::make_pair(m, n), std::make_pair(ch_id, std::vector<std::pair<int, int>>())));
     }
     vn_embedding->edge_map->find(std::make_pair(m, n))
-        ->second.push_back(std::make_pair(u, v));
+        ->second.second.push_back(std::make_pair(u, v));
   }
   fclose(emap);
   return std::move(vn_embedding);

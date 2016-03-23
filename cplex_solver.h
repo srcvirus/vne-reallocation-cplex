@@ -11,6 +11,7 @@ typedef IloArray<IloIntVarArray> IloIntVar2dArray;
 typedef IloArray<IloIntVar2dArray> IloIntVar3dArray;
 typedef IloArray<IloIntVar3dArray> IloIntVar4dArray;
 typedef IloArray<IloIntVar4dArray> IloIntVar5dArray;
+typedef IloArray<IloIntVar5dArray> IloIntVar6dArray;
 
 typedef IloArray<IloIntArray> IloInt2dArray;
 typedef IloArray<IloInt2dArray> IloInt3dArray;
@@ -49,10 +50,15 @@ class VNEReallocationCPLEXSolver {
   std::vector<std::vector<std::vector<int>>*> location_constraints_;
   std::vector<VNEmbedding*> vn_embeddings_;
   VNRParameters* vnr_parameters_;
+  unsigned int max_channels_;
   // Link mapping decision variable.
   IloIntVar5dArray X_imn_uv_;
   // Node mapping decision variable.
   IloIntVar3dArray Y_im_u_;
+  // Decision variable for vlink wavelength assignment.
+  IloIntVar4dArray L_imn_w_;
+  // Decision variable for plink wavelength assignment.
+  IloIntVar6dArray L_imn_uv_w_;
   // Indicator decision variable for bottleneck link.
   IloIntVar2dArray is_bottleneck_u_v_;
 
@@ -62,6 +68,8 @@ class VNEReallocationCPLEXSolver {
   IloInt3dArray y_im_u_;
   // Variable indicating existing link mapping.
   IloInt5dArray x_imn_uv_;
+  // Variable indicating channel availability.
+  IloInt3dArray av_uv_w_;
   // Objective function.
   IloExpr objective_;
 };
