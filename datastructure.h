@@ -19,28 +19,28 @@
 // corresponding edge.
 struct edge_endpoint {
   int node_id;
-  long channels;
+  long total_channels;
   long residual_channels;
   int delay;
   int cost;
   std::vector<bool> is_channel_available;
   edge_endpoint(int node_id, long ch, int delay, int cost)
       : node_id(node_id),
-        channels(ch),
+        total_channels(ch),
         delay(delay),
-        residual_bandwidth(ch),
+        residual_channels(ch),
         cost(cost),
         is_channel_available(ch, true) {}
   edge_endpoint(int node_id, long total_ch, long res_ch, int delay, int cost)
       : node_id(node_id),
-        channels(total_ch),
+        total_channels(total_ch),
         delay(delay),
-        residual_bandwidth(res_ch),
+        residual_channels(res_ch),
         cost(cost),
-        is_channel_available(ch, true) {}
+        is_channel_available(total_ch, true) {}
   std::string GetDebugString() {
-    return "ndoe_id = " + std::to_string(node_id) + ", channels = " +
-           std::to_string(channels) + ", delay = " + std::to_string(delay) +
+    return "ndoe_id = " + std::to_string(node_id) + ", total_channels = " +
+           std::to_string(total_channels) + ", delay = " + std::to_string(delay) +
            ", cost = " + std::to_string(cost);
   }
 };
@@ -86,10 +86,10 @@ class Graph {
     }
   }
 
-  long get_edge_channels(int u, int v) const {
+  long get_edge_total_channels(int u, int v) const {
     auto& neighbors = adj_list_->at(u);
     for (auto& end_point : neighbors) {
-      if (end_point.node_id == v) return end_point.channels;
+      if (end_point.node_id == v) return end_point.total_channels;
     }
   }
 

@@ -51,8 +51,6 @@ int main(int argc, char* argv[]) {
     ++i;
     ++num_vns;
   }
-  ComputePhysicalNetworkCapacity(physical_topology.get(), virt_topologies,
-                                 vn_embeddings);
   auto vnr_parameters = InitializeParametersFromFile(
       (case_directory + "/optimize_para.txt").c_str());
   DEBUG("Num VNs = %d\n", num_vns);

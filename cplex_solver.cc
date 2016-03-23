@@ -82,7 +82,7 @@ VNEReallocationCPLEXSolver::VNEReallocationCPLEXSolver(
             IloIntVar2dArray(env_, physical_topology_->node_count());
           for (int v = 0; v < physical_topology_->node_count(); ++v) {
             L_imn_uv_w_[i][m][n][u][v] = 
-              IloIntVar2dArray(env_, max_channels_, 0, 1);
+              IloIntVarArray(env_, max_channels_, 0, 1);
           }
           // x_imn_uv_[i][m][n][u] =
           //    IloIntArray(env_, physical_topology_->node_count(), 0, 1);
@@ -224,7 +224,7 @@ void VNEReallocationCPLEXSolver::BuildModel() {
             if (m > n) continue;
             int w_mn = vend_point.total_channels;
             sum += ((X_imn_uv_[i][m][n][u][v] + X_imn_uv_[i][m][n][v][u]) *
-                    beta_mn);
+                    w_mn);
           }
         }
       }
@@ -267,7 +267,7 @@ void VNEReallocationCPLEXSolver::BuildModel() {
     for (int m = 0; m < virt_topologies_[i]->node_count(); ++m) {
       auto& m_neighbors = virt_topologies_[i]->adj_list()->at(m);
       for (auto& vend_point : m_neighbors) {
-        int n = vned_point.node_id;
+        int n = vend_point.node_id;
         IloIntExpr sum(env_);
         for (int w = 0; w < max_channels_ ; ++w) {
           sum += L_imn_w_[i][m][n][w];
@@ -289,7 +289,7 @@ void VNEReallocationCPLEXSolver::BuildModel() {
             auto& m_neighbors = virt_topologies_[i]->adj_list()->at(m);
             for (auto& vend_point : m_neighbors) {
               int n = vend_point.node_id;
-              sum += L_imn_uv_w_[i][m][n][u][v];
+              sum += L_imn_uv_w_[i][m][n][u][v][w];
             }
           }
         }

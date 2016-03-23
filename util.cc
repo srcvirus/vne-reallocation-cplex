@@ -81,10 +81,12 @@ long BandwidthCost(
     for (auto emap_it = embedding->edge_map->begin();
          emap_it != embedding->edge_map->end(); ++emap_it) {
       auto& vlink = emap_it->first;
-      auto& plinks = emap_it->second;
+      int channel = emap_it->second.first;
+      auto& plinks = emap_it->second.second;
       for (auto& e : plinks) {
         cost += phys_topology->get_edge_cost(e.first, e.second) *
-                virt_topology->get_edge_bandwidth(vlink.first, vlink.second);
+                virt_topology->get_edge_total_channels(
+                    vlink.first, vlink.second);
       }
     }
   }
@@ -106,20 +108,21 @@ int GetNumBottleneckLinks(
     for (auto emap_it = embedding->edge_map->begin();
          emap_it != embedding->edge_map->end(); ++emap_it) {
       auto& vlink = emap_it->first;
-      auto& plinks = emap_it->second;
+      int channel = emap_it->second.first;
+      auto& plinks = emap_it->second.second;
       for (auto& e : plinks) {
-        long b_mn =
-            virt_topology->get_edge_bandwidth(vlink.first, vlink.second);
-        util_matrix[e.first][e.second] += b_mn;
-        util_matrix[e.second][e.first] += b_mn;
+        long w_mn =
+            virt_topology->get_edge_total_channels(vlink.first, vlink.second);
+        util_matrix[e.first][e.second] += w_mn;
+        util_matrix[e.second][e.first] += w_mn;
       }
     }
   }
   for (int u = 0; u < phys_topology->node_count(); ++u) {
     for (auto& end_point : phys_topology->adj_list()->at(u)) {
       int v = end_point.node_id;
-      long b_uv = phys_topology->get_edge_bandwidth(u, v);
-      util_matrix[u][v] /= static_cast<double>(b_uv);
+      long w_uv = phys_topology->get_edge_total_channels(u, v);
+      util_matrix[u][v] /= static_cast<double>(w_uv);
       if (u < v && util_matrix[u][v] > vnr_param->util_threshold) {
         ++num_bottlenecks;
       }
@@ -141,12 +144,13 @@ double GetMaxPLinkUtilization(
     for (auto emap_it = embedding->edge_map->begin();
          emap_it != embedding->edge_map->end(); ++emap_it) {
       auto& vlink = emap_it->first;
-      auto& plinks = emap_it->second;
+      int channel = emap_it->second.first;
+      auto& plinks = emap_it->second.second;
       for (auto& e : plinks) {
-        long b_mn =
-            virt_topology->get_edge_bandwidth(vlink.first, vlink.second);
-        util_matrix[e.first][e.second] += b_mn;
-        util_matrix[e.second][e.first] += b_mn;
+        long w_mn =
+            virt_topology->get_edge_total_channels(vlink.first, vlink.second);
+        util_matrix[e.first][e.second] += w_mn;
+        util_matrix[e.second][e.first] += w_mn;
       }
     }
   }
@@ -154,8 +158,8 @@ double GetMaxPLinkUtilization(
   for (int u = 0; u < phys_topology->node_count(); ++u) {
     for (auto& end_point : phys_topology->adj_list()->at(u)) {
       int v = end_point.node_id;
-      long b_uv = phys_topology->get_edge_bandwidth(u, v);
-      util_matrix[u][v] /= static_cast<double>(b_uv);
+      long w_uv = phys_topology->get_edge_total_channels(u, v);
+      util_matrix[u][v] /= static_cast<double>(w_uv);
       if (u < v && util_matrix[u][v] > max_utilization) {
         max_utilization = util_matrix[u][v];
       }
@@ -176,6 +180,7 @@ double VNRCost(const Graph* phys_topology,
   return cost;
 }
 
+/*
 void ComputePhysicalNetworkCapacity(
     Graph* phys_topology,
     const std::vector<std::unique_ptr<Graph>>& virt_topologies,
@@ -199,3 +204,4 @@ void ComputePhysicalNetworkCapacity(
     }
   }
 }
+*/

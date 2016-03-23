@@ -37,6 +37,9 @@ class VNEReallocationCPLEXSolver {
   IloIntVar5dArray& X_imn_uv() { return X_imn_uv_; }
   IloIntVar3dArray& Y_im_u() { return Y_im_u_; }
   IloIntVar2dArray& is_bottleneck_u_v() { return is_bottleneck_u_v_; }
+  IloIntVar6dArray& L_imn_uv_w() { return L_imn_uv_w_; }
+  int max_channels() { return max_channels_; }
+
   const VNRParameters* vnr_parameters() const { return vnr_parameters_; }
 
  private:

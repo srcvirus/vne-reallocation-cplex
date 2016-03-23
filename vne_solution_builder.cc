@@ -4,8 +4,10 @@
 #include <math.h>
 
 void VNESolutionBuilder::PrintEdgeMappings(const char *vnr_directory) {
-  auto cplex = vne_solver_ptr_->cplex();
-  auto X_imn_uv = vne_solver_ptr_->X_imn_uv();
+  auto& cplex = vne_solver_ptr_->cplex();
+  auto& X_imn_uv = vne_solver_ptr_->X_imn_uv();
+  auto& L_imn_uv_w = vne_solver_ptr_->L_imn_uv_w();
+  int max_channels = vne_solver_ptr_->max_channels();
   for (int i = 0; i < virt_topologies_->size(); ++i) {
     std::string emap_file = vnr_directory;
     emap_file += "vn" + std::to_string(i) + ".edge_remap.txt";
@@ -19,14 +21,17 @@ void VNESolutionBuilder::PrintEdgeMappings(const char *vnr_directory) {
           auto &u_neighbors = physical_topology_->adj_list()->at(u);
           for (auto &end_point : u_neighbors) {
             int v = end_point.node_id;
-            if (fabs(cplex.getValue(X_imn_uv[i][m][n][u][v]) - 1) < EPS) {
-              printf(
-                  "VN %d: Virtual edge (%d, %d) --> physical edge (%d, %d)\n",
-                  i, m, n, u, v);
-              fprintf(outfile,
-                      "VN %d: Virtual edge (%d, %d) --> physical "
-                      "edge (%d, %d)\n",
-                      i, m, n, u, v);
+            for (int w = 0; w < max_channels; ++w) {
+              if (fabs(cplex.getValue(X_imn_uv[i][m][n][u][v]) - 1) < EPS && 
+                  fabs(cplex.getValue(L_imn_uv_w[i][m][n][u][v][w]) - 1) < EPS) {
+                printf(
+                    "VN %d: Virtual edge (%d, %d) --> physical edge (%d, %d): channel %d\n",
+                    i, m, n, u, v, w);
+                fprintf(outfile,
+                        "VN %d: Virtual edge (%d, %d) --> physical "
+                        "edge (%d, %d): channel %d\n",
+                        i, m, n, u, v, w);
+              }
             }
           }
         }
@@ -62,8 +67,8 @@ std::unique_ptr<VNEmbedding> VNESolutionBuilder::GenerateEmbedding(
   embedding->node_map = std::unique_ptr<std::vector<int>>(
       new std::vector<int>(virt_topologies_->at(vn_index)->node_count()));
   embedding->edge_map = std::unique_ptr<
-      std::map<std::pair<int, int>, std::vector<std::pair<int, int>>>>(
-      new std::map<std::pair<int, int>, std::vector<std::pair<int, int>>>());
+      std::map<std::pair<int, int>, std::pair<int,std::vector<std::pair<int, int>>>>>(
+      new std::map<std::pair<int, int>, std::pair<int,std::vector<std::pair<int, int>>>>());
   auto &cplex = vne_solver_ptr_->cplex();
 
   // Populate Node Mapping.
@@ -79,6 +84,8 @@ std::unique_ptr<VNEmbedding> VNESolutionBuilder::GenerateEmbedding(
 
   // Populate Edge Mapping.
   auto &X_imn_uv = vne_solver_ptr_->X_imn_uv();
+  auto &L_imn_uv_w = vne_solver_ptr_->L_imn_uv_w();
+  int max_channels = vne_solver_ptr_->max_channels();
   for (int m = 0; m < virt_topologies_->at(vn_index)->node_count(); ++m) {
     auto &m_neighbors = virt_topologies_->at(vn_index)->adj_list()->at(m);
     for (auto vend_point : m_neighbors) {
@@ -88,20 +95,23 @@ std::unique_ptr<VNEmbedding> VNESolutionBuilder::GenerateEmbedding(
         auto &u_neighbors = physical_topology_->adj_list()->at(u);
         for (auto &end_point : u_neighbors) {
           int v = end_point.node_id;
-          if (fabs(cplex.getValue(X_imn_uv[vn_index][m][n][u][v]) - 1) < EPS) {
-            if (embedding->edge_map->find(std::make_pair(m, n)) ==
-                embedding->edge_map->end()) {
-              embedding->edge_map->insert(std::make_pair(
-                  std::make_pair(m, n), std::vector<std::pair<int, int>>()));
+          for (int w = 0; w < max_channels; ++w) {
+            if (fabs(cplex.getValue(X_imn_uv[vn_index][m][n][u][v]) - 1) < EPS &&
+                fabs(cplex.getValue(L_imn_uv_w[vn_index][m][n][u][v][w]) - 1) < EPS) {
+              if (embedding->edge_map->find(std::make_pair(m, n)) ==
+                  embedding->edge_map->end()) {
+                embedding->edge_map->insert(std::make_pair(
+                    std::make_pair(m, n), std::pair<int,std::vector<std::pair<int, int>>>()));
+              }
+              embedding->edge_map->find(std::make_pair(m, n))->second.first = w;
+              embedding->edge_map->find(std::make_pair(m, n))
+                  ->second.second.push_back(std::make_pair(u, v));
             }
-            embedding->edge_map->find(std::make_pair(m, n))
-                ->second.push_back(std::make_pair(u, v));
           }
         }
-      }
+      } 
     }
   }
-
   return std::move(embedding);
 }
 

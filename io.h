@@ -70,13 +70,15 @@ std::unique_ptr<Graph> InitializeTopologyFromFile(const char *filename) {
     int u = atoi(row[1].c_str());
     int v = atoi(row[2].c_str());
     int cost = atoi(row[4].c_str());
-    long res_ch = atol(row[5].c_str());
-    long total_ch = atol(row[7].c_str());
+    long total_ch, res_ch;
+    total_ch = res_ch = atol(row[5].c_str());
+    if (row.size() >= 8) 
+      total_ch = atol(row[7].c_str());
     int delay = atoi(row[6].c_str());
 
     DEBUG("Line[%d]: u = %d, v = %d, cost = %d, res_ch = %ld, total_ch = %ld, delay = %d\n", i, u,
           v, cost, res_ch, total_ch, delay);
-    graph->add_edge(u, v, total_ch, delay, cost);
+    graph->add_edge(u, v, total_ch, res_ch, delay, cost);
   }
   return std::move(graph);
 }
