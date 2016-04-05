@@ -1,5 +1,4 @@
-# CPLEX Implementation for Virtual Network Reallocation for minimizing bandwidth allocation cost and bottlneck links, i.e., links with >80% utilization
-
+# CPLEX Implementation for Virtual Network Reallocation 
 ## Dependencies
 
 The implementation uses IBM ILOG CPLEX C++ API (version 12.5 of CPLEX Studio).
@@ -20,12 +19,11 @@ Makefile with the CPLEX installation directory.
 $ make
 $ ./vne_reallocation --case_directory=<case_directory>
 ```
-Sample test cases are provided in data-set directory (case0 - case5). Directory
-structure of each case directory is as follows:
+Directory structure of each case directory is as follows:
 ```
-case5
-├── info
+case0
 ├── sn.txt
+├── optimization_para.txt
 └── vnr
     ├── vn0.txt
     ├── vn0.txt.nmap
@@ -38,23 +36,14 @@ case5
 ```
 
 Description of these files are as follows:
-  * info = Generic information about the physical and virtual networks
   * sn.txt = Specification of a physical network
+  * optimization_para.txt = Parameters for optimization 
   * vni.txt = Specification of the i-th virtual network request
   * vni.txt.nmap = The given node mapping of the i-th VN
   * vni.txt.semap = The given link mapping of the i-th VN
   * vnloci = Location constraint for the i-th VN
   
 ## Input file format
-
-The info file currently needs the following format (see provided file for
-example):
-```
-VN:
-number = <number of VNs>
-```
-In the provided info files, there can be other sections other than "VN:". For
-the time being, the other sections are ignored.
 
 A topology file contains the list of edges. Each line contains a description of
 an edge in a comma separated value (CSV) format. Format of a line is as follows:
@@ -68,10 +57,10 @@ Where,
   * PeerID = Ignored
   * Cost = Cost of provisioning unit bandwidth on this link. Cost is ignored for
            virtual links.
-  * Bandwidth = Available bandwidth of a physical link. In case of virtual link,
+  * Bandwidth = Residual bandwidth of a physical link. In case of virtual link,
                 this is the bandwidth requirement
   * Delay = Latency of a physical link. In case of virtual link, this is the
-            maximum delay requirement for the virtual link.
+            maximum delay requirement for the virtual link. (Not used)
 
 A location constraint file contains as many lines as the number of virtual
 nodes. Each line is a comma separated list of values. The first value indicates
@@ -91,15 +80,31 @@ formatted as follows:
 <plink_endpoint_0> <plink_endpoint_1> <mapped_vlink_endpoint0> <mapped_vlink_endpoint_1>
 ```
 
-Please see the provided files as an example for better clarification.
+The optimization_para.txt file contains the following lines:
+```
+Goal Utilization = x%
+alpha = <alpha>
+beta = <beta>
+```
+Goal utilization is the utilization threshold for determining if a physical
+link is bottleneck or not. alpha and beta are the weights of bandwidth cost and
+bottleneck link cost in the objective function, respectively. 
 
-*Nodes are numberded from `0 ... (n - 1)` in a network with `n` nodes.
+Note: Nodes are numberded from `0 ... (n - 1)` in a network with `n` nodes.
 
 ## Output Files
 
 Currently the solver prints output to the standard output and writes them to
-the following output files as well:
+the following output files insider `vnr` directory:
 
-* new_cost.txt = Cost of the reoptimized embedding according to the cost function.
+* prev_cost = Cost of embedding before reoptimization.
+* prev_bnecks = Number of bottleneck links before reoptimization.
+* prev_bw_cost = Bandwidth cost before reoptimization.
+* prev_max_plink_util = Maximum physical link utilization before reoptimization.
+* sol_time = Execution time (in seconds)
+* new_cost = Cost of the reoptimized embedding according to the cost function.
+* new_bnecks = Number of bottleneck links after reoptimization
+* new_bw_cost = Bandwidth cost after reoptimization
+* new_max_plink_util = Maximum plink utilization after reoptimization
 * vn*.node_remap = node mapping of that VN in the reoptimized embedding
 * vn*.edge_remap = edge mapping of that VN in the reoptimized embedding
