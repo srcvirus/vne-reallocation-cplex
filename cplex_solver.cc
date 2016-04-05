@@ -185,7 +185,8 @@ void VNEReallocationCPLEXSolver::BuildModel() {
         }
       }
       constraints_.add(sum <= beta_uv);
-      constraints_.add(is_bottleneck_u_v_[u][v] - is_bottleneck_u_v_[v][u] == 0);
+      constraints_.add(is_bottleneck_u_v_[u][v] - is_bottleneck_u_v_[v][u] ==
+                       0);
       IloInt threshold = (vnr_parameters_->util_threshold * beta_uv);
       constraints_.add(
           IloIfThen(env_, sum > threshold, is_bottleneck_u_v_[u][v] == 1));

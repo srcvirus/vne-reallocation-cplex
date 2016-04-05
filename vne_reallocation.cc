@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
       location_constraints;
   std::vector<std::unique_ptr<VNEmbedding>> vn_embeddings;
   int i = 0;
-  while(true) {
+  while (true) {
     const string kVirtTopologyFile =
         case_directory + "/vnr/vn" + std::to_string(i) + ".txt";
     const string kVNLocationConstraintFile =
@@ -65,9 +65,8 @@ int main(int argc, char* argv[]) {
                             vn_embeddings, vnr_parameters.get());
   long prev_bw_cost =
       BandwidthCost(physical_topology.get(), virt_topologies, vn_embeddings);
-  double old_max_plink_util = 
-    GetMaxPLinkUtilization(physical_topology.get(), virt_topologies, 
-                           vn_embeddings);
+  double old_max_plink_util = GetMaxPLinkUtilization(
+      physical_topology.get(), virt_topologies, vn_embeddings);
 
   FILE* f = fopen((case_directory + "/vnr/prev_cost").c_str(), "w");
   fprintf(f, "%lf\n", prev_cost);
@@ -80,7 +79,7 @@ int main(int argc, char* argv[]) {
   f = fopen((case_directory + "/vnr/prev_bw_cost").c_str(), "w");
   fprintf(f, "%ld\n", prev_bw_cost);
   fclose(f);
-  
+
   f = fopen((case_directory + "/vnr/prev_max_plink_util").c_str(), "w");
   fprintf(f, "%lf\n", old_max_plink_util);
   fclose(f);
@@ -113,9 +112,8 @@ int main(int argc, char* argv[]) {
       f = fopen((case_directory + "/vnr/new_bnecks").c_str(), "w");
       fprintf(f, "%d\n", new_num_bottlenecks);
       fclose(f);
-      double max_plink_util = 
-        GetMaxPLinkUtilization(physical_topology.get(), virt_topologies,
-                               new_vn_embeddings);
+      double max_plink_util = GetMaxPLinkUtilization(
+          physical_topology.get(), virt_topologies, new_vn_embeddings);
       f = fopen((case_directory + "/vnr/new_max_plink_util").c_str(), "w");
       fprintf(f, "%lf\n", max_plink_util);
       fclose(f);
