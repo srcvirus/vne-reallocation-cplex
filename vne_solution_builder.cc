@@ -4,9 +4,9 @@
 #include <math.h>
 
 void VNESolutionBuilder::PrintEdgeMappings(const char *vnr_directory) {
-  auto& cplex = vne_solver_ptr_->cplex();
-  auto& X_imn_uv = vne_solver_ptr_->X_imn_uv();
-  auto& L_imn_uv_w = vne_solver_ptr_->L_imn_uv_w();
+  auto &cplex = vne_solver_ptr_->cplex();
+  auto &X_imn_uv = vne_solver_ptr_->X_imn_uv();
+  auto &L_imn_uv_w = vne_solver_ptr_->L_imn_uv_w();
   int max_channels = vne_solver_ptr_->max_channels();
   for (int i = 0; i < virt_topologies_->size(); ++i) {
     std::string emap_file = vnr_directory;
@@ -22,10 +22,12 @@ void VNESolutionBuilder::PrintEdgeMappings(const char *vnr_directory) {
           for (auto &end_point : u_neighbors) {
             int v = end_point.node_id;
             for (int w = 0; w < max_channels; ++w) {
-              if (fabs(cplex.getValue(X_imn_uv[i][m][n][u][v]) - 1) < EPS && 
-                  fabs(cplex.getValue(L_imn_uv_w[i][m][n][u][v][w]) - 1) < EPS) {
+              if (fabs(cplex.getValue(X_imn_uv[i][m][n][u][v]) - 1) < EPS &&
+                  fabs(cplex.getValue(L_imn_uv_w[i][m][n][u][v][w]) - 1) <
+                      EPS) {
                 printf(
-                    "VN %d: Virtual edge (%d, %d) --> physical edge (%d, %d): channel %d\n",
+                    "VN %d: Virtual edge (%d, %d) --> physical edge (%d, %d): "
+                    "channel %d\n",
                     i, m, n, u, v, w);
                 fprintf(outfile,
                         "VN %d: Virtual edge (%d, %d) --> physical "
@@ -66,9 +68,10 @@ std::unique_ptr<VNEmbedding> VNESolutionBuilder::GenerateEmbedding(
   std::unique_ptr<VNEmbedding> embedding(new VNEmbedding());
   embedding->node_map = std::unique_ptr<std::vector<int>>(
       new std::vector<int>(virt_topologies_->at(vn_index)->node_count()));
-  embedding->edge_map = std::unique_ptr<
-      std::map<std::pair<int, int>, std::pair<int,std::vector<std::pair<int, int>>>>>(
-      new std::map<std::pair<int, int>, std::pair<int,std::vector<std::pair<int, int>>>>());
+  embedding->edge_map = std::unique_ptr<std::map<
+      std::pair<int, int>, std::pair<int, std::vector<std::pair<int, int>>>>>(
+      new std::map<std::pair<int, int>,
+                   std::pair<int, std::vector<std::pair<int, int>>>>());
   auto &cplex = vne_solver_ptr_->cplex();
 
   // Populate Node Mapping.
@@ -96,12 +99,15 @@ std::unique_ptr<VNEmbedding> VNESolutionBuilder::GenerateEmbedding(
         for (auto &end_point : u_neighbors) {
           int v = end_point.node_id;
           for (int w = 0; w < max_channels; ++w) {
-            if (fabs(cplex.getValue(X_imn_uv[vn_index][m][n][u][v]) - 1) < EPS &&
-                fabs(cplex.getValue(L_imn_uv_w[vn_index][m][n][u][v][w]) - 1) < EPS) {
+            if (fabs(cplex.getValue(X_imn_uv[vn_index][m][n][u][v]) - 1) <
+                    EPS &&
+                fabs(cplex.getValue(L_imn_uv_w[vn_index][m][n][u][v][w]) - 1) <
+                    EPS) {
               if (embedding->edge_map->find(std::make_pair(m, n)) ==
                   embedding->edge_map->end()) {
                 embedding->edge_map->insert(std::make_pair(
-                    std::make_pair(m, n), std::pair<int,std::vector<std::pair<int, int>>>()));
+                    std::make_pair(m, n),
+                    std::pair<int, std::vector<std::pair<int, int>>>()));
               }
               embedding->edge_map->find(std::make_pair(m, n))->second.first = w;
               embedding->edge_map->find(std::make_pair(m, n))
@@ -109,7 +115,7 @@ std::unique_ptr<VNEmbedding> VNESolutionBuilder::GenerateEmbedding(
             }
           }
         }
-      } 
+      }
     }
   }
   return std::move(embedding);

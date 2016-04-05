@@ -40,8 +40,8 @@ struct edge_endpoint {
         is_channel_available(total_ch, true) {}
   std::string GetDebugString() {
     return "ndoe_id = " + std::to_string(node_id) + ", total_channels = " +
-           std::to_string(total_channels) + ", delay = " + std::to_string(delay) +
-           ", cost = " + std::to_string(cost);
+           std::to_string(total_channels) + ", delay = " +
+           std::to_string(delay) + ", cost = " + std::to_string(cost);
   }
 };
 
@@ -114,8 +114,9 @@ class Graph {
 
 struct VNEmbedding {
   std::unique_ptr<std::vector<int>> node_map;
-  std::unique_ptr<std::map<std::pair<int, int>, 
-                  std::pair<int,std::vector<std::pair<int, int>>>>> edge_map;
+  std::unique_ptr<std::map<std::pair<int, int>,
+                           std::pair<int, std::vector<std::pair<int, int>>>>>
+      edge_map;
   long cost;
 };
 

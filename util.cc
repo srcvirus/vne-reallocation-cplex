@@ -84,9 +84,9 @@ long BandwidthCost(
       int channel = emap_it->second.first;
       auto& plinks = emap_it->second.second;
       for (auto& e : plinks) {
-        cost += phys_topology->get_edge_cost(e.first, e.second) *
-                virt_topology->get_edge_total_channels(
-                    vlink.first, vlink.second);
+        cost +=
+            phys_topology->get_edge_cost(e.first, e.second) *
+            virt_topology->get_edge_total_channels(vlink.first, vlink.second);
       }
     }
   }

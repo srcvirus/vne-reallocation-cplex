@@ -65,29 +65,33 @@ VNEReallocationCPLEXSolver::VNEReallocationCPLEXSolver(
     for (int m = 0; m < virt_topologies_[i]->node_count(); ++m) {
       X_imn_uv_[i][m] =
           IloIntVar3dArray(env_, virt_topologies_[i]->node_count());
-      L_imn_uv_w_[i][m] = IloIntVar4dArray(env_, virt_topologies_[i]->node_count());
-      L_imn_w_[i][m] = IloIntVar2dArray(env_, virt_topologies_[i]->node_count());
-      // x_imn_uv_[i][m] = IloInt3dArray(env_, virt_topologies_[i]->node_count());
+      L_imn_uv_w_[i][m] =
+          IloIntVar4dArray(env_, virt_topologies_[i]->node_count());
+      L_imn_w_[i][m] =
+          IloIntVar2dArray(env_, virt_topologies_[i]->node_count());
+      // x_imn_uv_[i][m] = IloInt3dArray(env_,
+      // virt_topologies_[i]->node_count());
       for (int n = 0; n < virt_topologies_[i]->node_count(); ++n) {
         X_imn_uv_[i][m][n] =
             IloIntVar2dArray(env_, physical_topology_->node_count());
-        L_imn_uv_w_[i][m][n] = IloIntVar3dArray(env_, physical_topology_->node_count());
+        L_imn_uv_w_[i][m][n] =
+            IloIntVar3dArray(env_, physical_topology_->node_count());
         L_imn_w_[i][m][n] = IloIntVarArray(env_, max_channels_, 0, 1);
         // x_imn_uv_[i][m][n] =
         //    IloInt2dArray(env_, physical_topology_->node_count());
         for (int u = 0; u < physical_topology_->node_count(); ++u) {
           X_imn_uv_[i][m][n][u] =
               IloIntVarArray(env_, physical_topology_->node_count(), 0, 1);
-          L_imn_uv_w_[i][m][n][u] = 
-            IloIntVar2dArray(env_, physical_topology_->node_count());
+          L_imn_uv_w_[i][m][n][u] =
+              IloIntVar2dArray(env_, physical_topology_->node_count());
           for (int v = 0; v < physical_topology_->node_count(); ++v) {
-            L_imn_uv_w_[i][m][n][u][v] = 
-              IloIntVarArray(env_, max_channels_, 0, 1);
+            L_imn_uv_w_[i][m][n][u][v] =
+                IloIntVarArray(env_, max_channels_, 0, 1);
           }
           // x_imn_uv_[i][m][n][u] =
           //    IloIntArray(env_, physical_topology_->node_count(), 0, 1);
           // for (int v = 0; v < physical_topology_->node_count(); ++v) {
-            // x_imn_uv_[i][m][n][u][v] = 0;
+          // x_imn_uv_[i][m][n][u][v] = 0;
           // }
         }
       }
@@ -100,7 +104,8 @@ VNEReallocationCPLEXSolver::VNEReallocationCPLEXSolver(
     for (int m = 0; m < virt_topologies_[i]->node_count(); ++m) {
       Y_im_u_[i][m] =
           IloIntVarArray(env_, physical_topology_->node_count(), 0, 1);
-      // y_im_u_[i][m] = IloIntArray(env_, physical_topology_->node_count(), 0, 1);
+      // y_im_u_[i][m] = IloIntArray(env_, physical_topology_->node_count(), 0,
+      // 1);
       l_im_u_[i][m] = IloIntArray(env_, physical_topology_->node_count(), 0, 1);
       for (int u = 0; u < physical_topology_->node_count(); ++u) {
         // y_im_u_[i][m][u] = 0;
@@ -117,11 +122,11 @@ VNEReallocationCPLEXSolver::VNEReallocationCPLEXSolver(
     // }
     // auto it = vne.edge_map->begin();
     // for (auto it = vne.edge_map->begin(); it != vne.edge_map->end(); ++it) {
-      // int m = it->first.first, n = it->first.second;
-      // for (auto& edge : it->second) {
-        // int u = edge.first, v = edge.second;
-        // x_imn_uv_[i][m][n][u][v] = 1;
-      // }
+    // int m = it->first.first, n = it->first.second;
+    // for (auto& edge : it->second) {
+    // int u = edge.first, v = edge.second;
+    // x_imn_uv_[i][m][n][u][v] = 1;
+    // }
     // }
     auto& lc = *location_constraints[i];
     for (int m = 0; m < lc.size(); ++m) {
@@ -135,12 +140,12 @@ VNEReallocationCPLEXSolver::VNEReallocationCPLEXSolver(
   for (int u = 0; u < physical_topology_->node_count(); ++u) {
     av_uv_w_[u] = IloInt2dArray(env_, physical_topology_->node_count());
     for (int v = 0; v < physical_topology_->node_count(); ++v) {
-       av_uv_w_[u][v] = IloIntArray(env_, max_channels_, 0, 1);
-       for (int w = 0; w < max_channels_; ++w) {
-         av_uv_w_[u][v][w] = 0;
+      av_uv_w_[u][v] = IloIntArray(env_, max_channels_, 0, 1);
+      for (int w = 0; w < max_channels_; ++w) {
+        av_uv_w_[u][v][w] = 0;
       }
     }
-    auto &u_neighbors = physical_topology_->adj_list()->at(u);
+    auto& u_neighbors = physical_topology_->adj_list()->at(u);
     for (auto& node : u_neighbors) {
       int v = node.node_id;
       for (int w = 0; w < node.is_channel_available.size(); ++w) {
@@ -223,13 +228,14 @@ void VNEReallocationCPLEXSolver::BuildModel() {
             int n = vend_point.node_id;
             if (m > n) continue;
             int w_mn = vend_point.total_channels;
-            sum += ((X_imn_uv_[i][m][n][u][v] + X_imn_uv_[i][m][n][v][u]) *
-                    w_mn);
+            sum +=
+                ((X_imn_uv_[i][m][n][u][v] + X_imn_uv_[i][m][n][v][u]) * w_mn);
           }
         }
       }
       constraints_.add(sum <= w_uv);
-      constraints_.add(is_bottleneck_u_v_[u][v] - is_bottleneck_u_v_[v][u] == 0);
+      constraints_.add(is_bottleneck_u_v_[u][v] - is_bottleneck_u_v_[v][u] ==
+                       0);
       IloInt threshold = (vnr_parameters_->util_threshold * w_uv);
       constraints_.add(
           IloIfThen(env_, sum > threshold, is_bottleneck_u_v_[u][v] == 1));
@@ -269,7 +275,7 @@ void VNEReallocationCPLEXSolver::BuildModel() {
       for (auto& vend_point : m_neighbors) {
         int n = vend_point.node_id;
         IloIntExpr sum(env_);
-        for (int w = 0; w < max_channels_ ; ++w) {
+        for (int w = 0; w < max_channels_; ++w) {
           sum += L_imn_w_[i][m][n][w];
         }
         constraints_.add(sum == 1);
@@ -309,9 +315,11 @@ void VNEReallocationCPLEXSolver::BuildModel() {
           for (auto& end_point : u_neighbors) {
             int v = end_point.node_id;
             for (int w = 0; w < max_channels_; ++w) {
-              constraints_.add(L_imn_uv_w_[i][m][n][u][v][w] <= L_imn_w_[i][m][n][w]);
+              constraints_.add(L_imn_uv_w_[i][m][n][u][v][w] <=
+                               L_imn_w_[i][m][n][w]);
               constraints_.add(L_imn_uv_w_[i][m][n][u][v][w] >=
-                                 L_imn_w_[i][m][n][w] + X_imn_uv_[i][m][n][u][v] - 1);
+                               L_imn_w_[i][m][n][w] + X_imn_uv_[i][m][n][u][v] -
+                                   1);
               constraints_.add(L_imn_uv_w_[i][m][n][u][v][w] <=
                                X_imn_uv_[i][m][n][u][v]);
             }
